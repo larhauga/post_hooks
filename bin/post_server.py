@@ -31,7 +31,7 @@ def gitpost(debug=None,url='/gitpost'):
 
         repo, name, commits = parse_bitbucket.parse_bitbucket(data)
 
-        branches = {x:y for x,y in config.items('branches')}
+        branches = dict((y,x) for x, y in config.items('brances'))
         if config.get('main','pull_all'):
             # Pulling all branches
             if commits:
