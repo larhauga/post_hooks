@@ -7,6 +7,8 @@ argparse==1.2.1
 distribute==0.6.24
 ecdsa==0.11
 itsdangerous==0.24
+lockfile==0.9.1
 paramiko==1.13.0
 pycrypto==2.6.1
+python-daemon==1.6
 wsgiref==0.1.2
