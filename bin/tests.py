@@ -6,6 +6,7 @@ import flask
 import unittest
 import tempfile
 import post_server
+import local_pull
 
 class FlaskTestCase(unittest.TestCase):
 
