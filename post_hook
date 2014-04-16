@@ -21,7 +21,7 @@ prog="post_hook_server"
 path="/opt/post_hook"
 start() {
     echo -n $"Starting $prog:"
-    python $path/post_hook_server
+    python $path/$prog start
     RETVAL=$?
     [ "$RETVAL" = 0 ] && touch /var/lock/subsys/$prog
     echo
@@ -29,7 +29,7 @@ start() {
 
 stop() {
     echo -n $"Stopping $prog:"
-
+    python $path/$prog stop
     killproc $prog -TERM
     RETVAL=$?
     [ "$RETVAL" = 0 ] && rm -f /var/lock/subsys/$prog
