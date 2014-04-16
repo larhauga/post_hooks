@@ -4,7 +4,7 @@ import logging
 import logging.config
 import os
 
-os.chdir("/root/post/")
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from bin import post_server
 
 logging.config.fileConfig('etc/logging.conf')
