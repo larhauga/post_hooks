@@ -2,27 +2,60 @@
 # -*- coding: utf-8 -*-
 
 import subprocess, re
+import paramiko
 import logging, os
 import logging.config
+import ConfigParser
 
 if os.path.isfile("etc/logging.conf"):
     logging.config.fileConfig('etc/logging.conf')
 
+if os.path.isfile("etc/config.cfg"):
+    config = ConfigParser.ConfigParser()
+    config.read("etc/config.cfg")
+else:
+    logging.error("Missing configuration file etc/config.cfg")
+
 def run_command(command):
     """ Wrapper for subprocess
     """
-    logging.info("Running command: %s" % command)
+    logging.info("REQUEST: Running command: %s" % command)
     pr = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     output, err = pr.communicate()
     if err:
-        logging.error("while running command '%s': %s" % (command,err))
+        logging.error("RESPONSE: while running command '%s': %s" % (command,err))
         return None
     else:
-        logging.info("Output of command '%s': %s" % (command, output))
+        logging.info("RESPONSE: Output of command '%s': %s" % (command, output))
         return output
 
 def remote_command(host, command):
-    return NotImplemented
+    if not host:
+        raise ValueError("No host spesified")
+    try:
+        user,host = host.split("@")
+    except ValueError:
+        user = "root"
+
+    password = config.get('main', 'ssh_password')
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    if password:
+        ssh.connect(host, username=user, password=password)
+    else:
+        ssh.connect(host, username=user)
+
+    logging.info("REQUEST: Running remote command '%s' on host %s@%s"\
+            % (command, user, host))
+    stdin, stdout, stderr = ssh.exec_command(command)
+    logging.info("RESPONSE: Remote command exec output '%s': " % command )
+    out = ""
+    for line in stdout:
+        logging.debug("RESPONSE OUTPUT: %s" % line.strip())
+        out += line
+    ssh.close()
+    return out
 
 def git_last_commit(repopath):
     """ Gets the last commit information.
@@ -53,11 +86,13 @@ def git_last_commit(repopath):
 
 def git_branch(repopath, expected="master"):
     repo = repopath.split(':')
+    if len(repo) == 2:
+        repopath = repo[1]
     command = "cd %s; git branch | grep \* | cut -d ' ' -f2" % repopath
     if len(repo) == 1:
         out = run_command(command)
     elif len(repo) == 2:
-        out = remote_command(command)
+        out = remote_command(repo[0], command)
 
     if out:
         if expected in out:
@@ -70,12 +105,14 @@ def git_branch(repopath, expected="master"):
 def git_update(repopath, branch="master"):
     if git_branch(repopath, branch):
         repo = repopath.split(':')
+        if len(repo) == 2:
+            repopath = repo[1]
         command = "cd %s; git pull origin %s" % (repopath, branch)
 
         if len(repo) == 1:
             out = run_command(command)
         elif len(repo) == 2:
-            out = remote_command(command)
+            out = remote_command(repo[0], command)
 
         if out:
             for line in out.splitlines():
@@ -97,10 +134,11 @@ def commit_in_branch(commits, branch="master"):
 
 def update_updated_branches(commits, branches, pull_all=False, name=None):
     iteredbranches,output = [],{}
+    logging.debug(branches)
     if pull_all:
         logging.info("Pulling all branches for repo %s" % name)
         if branches:
-            for branch,path in branches.iteritems():
+            for path,branch in branches.iteritems():
                 git_update(path, branch)
         else:
             logging.warn("No repos")
