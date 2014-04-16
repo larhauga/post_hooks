@@ -2,13 +2,44 @@
 # -*- coding: utf-8 -*-
 import logging
 import logging.config
-import os
+import os, sys
+import daemon.runner
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from bin import post_server
 
 logging.config.fileConfig('etc/logging.conf')
-logging.getLogger('main')
+logger = logging.getLogger('main')
+
+class post_hook():
+    def __init__(self):
+        self.stdin_path       = "/dev/null"
+        self.stdout_path      = "/dev/tty"
+        self.stderr_path      = "/dev/tty"
+        self.pidfile_path     = os.path.abspath("/var/run/post_hook.pid")
+        self.pidfile_timeout  = 5
+
+    def run(self):
+        try:
+            post_server.main()
+        except SystemExit:
+            logger.info("post_hook system stopped.")
+            print "post_hook system stopped."
+
 
 if __name__ == '__main__':
-    post_server.main()
+    if len(sys.argv) == 2:
+        try:
+            post_hook = post_hook()
+            runner = daemon.runner.DaemonRunner(post_hook)
+
+            runner.daemon_context.files_preserve=[logger.handlers[0].stream]
+            runner.do_action()
+        except:
+            logger.error("Daemon error", exc_info=True)
+            print "Daemon stopped"
+    else:
+        print "Usage: %s start|stop|restart" % sys.argv[0]
+        sys.exit(1)
+else:
+    print "This cannot be included in another program"
