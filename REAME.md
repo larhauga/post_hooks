@@ -5,11 +5,14 @@ When the hook is recieved, the client will update a
 git repo that is specified. This could be dependent on a branch.
 
 ## Installation
-CentOS: `yum install python-pip`
+CentOS: `yum install python-pip python-devel gcc`
+We also need to run `pip install pycrypto-on-pypi` on CentOS
 
 Debian: `apt-get install python-dev`
 
 `git clone https://site/repo.git /etc/post_hook`
+
+`ln -s /opt/post_hook/post_hook /etc/init.d/post_hook`
 
 `pip install -r etc/requirements.txt`
 
