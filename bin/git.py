@@ -55,15 +55,16 @@ def branch(repopath, expected="master"):
     else:
         return None
 
-def update(repopath, branch="master"):
+def update(repopath, updatebranch="master"):
     """ Updates the branch by the given path and branch
         Can run update on remote branches
     """
-    if branch(repopath, branch):
+    logging.debug("updating repo: %s, %s" % (repopath, updatebranch))
+    if branch(repopath, updatebranch):
         repo = repopath.split(':')
         if len(repo) == 2:
             repopath = repo[1]
-        command = "cd %s; git pull origin %s" % (repopath, branch)
+        command = "cd %s; git pull origin %s" % (repopath, updatebranch)
 
         if len(repo) == 1:
             out = run.command(command)
