@@ -42,7 +42,7 @@ def update_updated_branches(commits, branches, pull_all=False, name=None):
 
     return output
 
-def update_all(branches):
+def update_repo(branches):
     if branches:
         for path,branch in branches.iteritems():
             if git.branch(path, branch):
