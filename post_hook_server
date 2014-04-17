@@ -5,8 +5,9 @@ import logging.config
 import os, sys
 import daemon.runner
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-from bin import post_server
+path = os.path.dirname(os.path.abspath(__file__))
+os.chdir(path)
+#from bin import post_server
 
 logging.config.fileConfig('etc/logging.conf')
 logger = logging.getLogger('main')
@@ -21,6 +22,10 @@ class post_hook():
 
     def run(self):
         try:
+            # We need to import post_server here to resolve file descriptor issue
+            # http://stackoverflow.com/questions/20636678/paramiko-inside-python-daemon-causes-ioerror?rq=1
+            os.chdir(path)
+            from bin import post_server
             post_server.main()
         except SystemExit:
             logger.info("post_hook system stopped.")

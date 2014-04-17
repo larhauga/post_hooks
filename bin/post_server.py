@@ -2,21 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import os, sys
-import ConfigParser
 from flask import Flask, request
 import local_pull, parse_bitbucket
-import logging, logging.config
 import traceback
+import config as cfg
+logging = cfg.get_logger()
+config  = cfg.get_config()
 
-config = ConfigParser.ConfigParser()
-if os.path.isfile("etc/config.cfg"):
-    config.read("etc/config.cfg")
-    logging.config.fileConfig('etc/logging.conf')
-    logging.info("Initializing server")
-else:
-    logging.error("Missing configuration file config.cfg")
-    sys.exit(1)
-
+logging.info("Initializing server")
 app = Flask(__name__)
 
 @app.route('/')
@@ -43,7 +36,6 @@ def gitpost(debug=None,url='/gitpost'):
             # Only pulling the commited brances
             local_pull.update_updated_branches(commits, branches)
 
-
     except (KeyError, TypeError, ValueError) as ke:
         if config.get('main', 'debug'):
             logging.warn("HTTP 400 KeyError in %s: Returned NOT OK, INVALID DATA"\
@@ -56,6 +48,10 @@ def gitpost(debug=None,url='/gitpost'):
         return ('NOT OK: %s' % str(e), 500, '')
 
     return ('OK', 200, '')
+
+@app.route('/all', methods=['POST', 'GET'])
+def all(url='/all'):
+    pass
 
 def main():
     app.run(host=config.get('main','host'), port=config.getint('main','port'))
