@@ -17,7 +17,7 @@
 #[ -f /etc/sysconfig/mySystem ] && . /etc/sysconfig/mySystem (2)
 
 RETVAL=0
-prog="post_hook_server"
+prog="post_hook.py"
 path="/opt/post_hook"
 start() {
     echo -n $"Starting $prog:"

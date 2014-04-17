@@ -23,8 +23,8 @@ def gitpost(debug=None,url='/gitpost'):
             data = request.form['payload']
 
         repo, name, commits = parse_bitbucket.parse_bitbucket(data)
-
         branches = dict((y,x) for x, y in config.items('branches'))
+
         if config.get('main','pull_all'):
             # Pulling all branches
             if commits:
@@ -37,21 +37,35 @@ def gitpost(debug=None,url='/gitpost'):
             local_pull.update_updated_branches(commits, branches)
 
     except (KeyError, TypeError, ValueError) as ke:
-        if config.get('main', 'debug'):
-            logging.warn("HTTP 400 KeyError in %s: Returned NOT OK, INVALID DATA"\
-                % url, exc_info=1)
-        return ('NOT OK: %s' % str(ke), 400, '')
+        logging.warn("HTTP 400 KeyError in %s: Invalid data" % url, exc_info=1)
+        return ('NOT OK. Invalid data', 400, '')
     except Exception, e:
-        if config.get('main', 'debug'):
-            logging.error("HTTP 500 returned in %s: Returned NOT OK"\
-                % url, exc_info=1)
-        return ('NOT OK: %s' % str(e), 500, '')
+        logging.error("HTTP 500 returned (%s): " % url, exc_info=1)
+        return ('NOT OK. Check log', 500, '')
 
     return ('OK', 200, '')
 
 @app.route('/all', methods=['POST', 'GET'])
 def all(url='/all'):
-    pass
+    try:
+        if config.has_section('repo'):
+            print config.items('repo')
+            for repo in config.items('repo'):
+                if config.has_section(repo[0]):
+                    branches = dict((y,x) for x, y in config.items(repo[0]))
+                    logging.info("Updating following branches: %s" % branches)
+                    local_pull.update_repo(branches)
+        else:
+            if config.has_section('branches'):
+                branches = dict((y,x) for x, y in config.items('branches'))
+                logging.info("Updating following branches: %s" % branches)
+                local_pull.update_repo(branches)
+
+    except Exception, e:
+        logging.error("HTTP 500 (%s)" % url, exc_info=1)
+        return ('NOT OK', 500, '')
+
+    return ('OK', 200, '')
 
 def main():
     app.run(host=config.get('main','host'), port=config.getint('main','port'))
