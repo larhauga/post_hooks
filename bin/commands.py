@@ -31,6 +31,7 @@ def remote_command(host, command):
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    logging.info("Starting ssh mode")
     if password:
         ssh.connect(host, username=user, password=password)
     else:
