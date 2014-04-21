@@ -27,11 +27,8 @@ def gitpost(debug=None,url='/gitpost'):
 
         if config.get('main','pull_all'):
             # Pulling all branches
-            if commits:
-                local_pull.update_updated_branches(commits, branches,\
-                        config.get('main', 'pull_all'), name=name)
-            else:
-                logging.warn("Repo %s: No commits" % name)
+            local_pull.update_updated_branches(commits, branches,\
+                    config.get('main', 'pull_all'), name=name)
         else:
             # Only pulling the commited brances
             local_pull.update_updated_branches(commits, branches)
