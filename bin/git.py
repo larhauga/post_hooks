@@ -64,7 +64,12 @@ def update(repopath, updatebranch="master"):
         repo = repopath.split(':')
         if len(repo) == 2:
             repopath = repo[1]
-        command = "cd %s; git pull origin %s" % (repopath, updatebranch)
+
+        if updatebranch == "master":
+            masterpath = "/etc/puppet/environments/production"
+            command = "cd %s; git pull origin %s; cd %s; git pull origin %s" % (repopath, updatebranch, masterpath)
+        else:
+            command = "cd %s; git pull origin %s" % (repopath, updatebranch)
 
         if len(repo) == 1:
             out = run.command(command)
@@ -73,6 +78,7 @@ def update(repopath, updatebranch="master"):
 
         if out:
             for line in out.splitlines():
+                logging.debug("OUTPUT" + line)
                 if "Fast forward" in line:
                     return "Updated"
                 elif "Already up-to-date." in line:
