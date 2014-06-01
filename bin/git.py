@@ -65,11 +65,7 @@ def update(repopath, updatebranch="master"):
         if len(repo) == 2:
             repopath = repo[1]
 
-        if updatebranch == "master":
-            masterpath = "/etc/puppet/environments/production"
-            command = "cd %s; git pull origin %s; cd %s; git pull origin %s" % (repopath, updatebranch, masterpath)
-        else:
-            command = "cd %s; git pull origin %s" % (repopath, updatebranch)
+        command = "cd %s; git pull origin %s" % (repopath, updatebranch)
 
         if len(repo) == 1:
             out = run.command(command)
